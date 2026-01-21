@@ -26,6 +26,7 @@ public class JumpController : MonoBehaviour
     private float charge;
     private bool isGrounded;
     private bool isCharging;
+    private bool inputLocked; // 🔒 NUEVO
 
     private Rigidbody2D rb;
     private Vector3 visualOriginalLocalPos;
@@ -48,15 +49,22 @@ public class JumpController : MonoBehaviour
             return;
         }
 
-        // 👉 CANCELAR SALTO (BOTÓN DERECHO)
-        if (Input.GetMouseButtonDown(1))
+        // 🔓 Desbloqueo: el jugador soltó el botón izquierdo
+        if (inputLocked && Input.GetMouseButtonUp(0))
+        {
+            inputLocked = false;
+        }
+
+        // 👉 CANCELAR SALTO
+        if (!inputLocked && Input.GetMouseButtonDown(1))
         {
             CancelCharge();
+            inputLocked = true; // 🔒 bloquea hasta soltar botón izquierdo
             return;
         }
 
         // 👉 CARGA DE SALTO
-        if (Input.GetMouseButton(0))
+        if (!inputLocked && Input.GetMouseButton(0))
         {
             isCharging = true;
 
@@ -71,16 +79,10 @@ public class JumpController : MonoBehaviour
         }
 
         // 👉 SOLTAR SALTO
-        if (Input.GetMouseButtonUp(0) && isCharging)
+        if (!inputLocked && Input.GetMouseButtonUp(0) && isCharging)
         {
             Jump();
         }
-    }
-
-    void LateUpdate()
-    {
-        // Seguridad absoluta: siempre derecho
-        transform.rotation = Quaternion.identity;
     }
 
     void Jump()
